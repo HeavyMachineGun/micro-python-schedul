@@ -1,0 +1,47 @@
+version: '3.9'
+
+services:
+  mongodb:
+    image: mongo:5.0
+    ports:
+      - 27017:27017
+    volumes:
+      - ~/apps/mongo:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+  
+  web:
+    environment:
+      - MONGODB_URL=${MONGODB_URL}
+      - DEBUG=${DEBUG}
+      - FLASK_ENV=${FLASK_ENV}
+      - FLASK_APP=${FLASK_APP}
+      - FLASK_DEBUG=${FLASK_DEBUG}
+      - FLASK_RUN_PORT=${FLASK_RUN_PORT}
+      - FLASK_RUN_HOST=${FLASK_RUN_HOST}
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+    build: .
+    volumes:
+      - ./src:/code
+    ports:
+      - "5000:8000"
+    depends_on:
+      - "mongodb"
+  
+  jupyter:
+    build:
+      context: ./
+      dockerfile: ./jupyter/Dockerfile
+    environment:
+      - PASSWORD=${JUPYTER_PASSWORD}
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./src:/jupyter/src
+      - ./jupyter/jupyter_server_config.py:/home/jovyan/.jupyter/jupyter_server_config.py
+      - ./jupyter/jupyter_server_config.json:/home/jovyan/.jupyter/jupyter_server_config.json
+      - ./jupyter/notebooks:/jupyter/notebooks
+      - ./jupyter/profile_default:/home/jovyan/.ipython/profile_default
+  
